@@ -10,3 +10,7 @@ export const Form = styled.form`
     width: 100%;
   }
 `;
+
+export const SubmitButton = styled.button`
+  ${p => (p.disabled ? 'color: gray' : '')};
+`;

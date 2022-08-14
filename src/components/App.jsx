@@ -4,17 +4,19 @@ import ContactList from './ContactList/ContactList';
 import Filter from './Filter/Filter';
 import { VertFlexSection, OneLine } from './App.styled';
 import { useDispatch, useSelector } from 'react-redux';
+import { filterSet, getFilter } from 'redux/filterSlice';
 import {
-  contactRemove,
-  filterSet,
-  getContacts,
-  getFilter,
-} from 'redux/contactsSlice';
+  useGetContactsQuery,
+  useRemoveContactMutation,
+} from 'redux/contactsAPI';
+import Loader from './Loader/Loader';
 
 export const App = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
+  const { data: contacts, isFetching } = useGetContactsQuery();
   const filter = useSelector(getFilter);
+
+  // console.log(contacts, filter);
 
   const filterContacts = () =>
     contacts.filter(c => c.name.toLowerCase().includes(filter));
@@ -23,9 +25,7 @@ export const App = () => {
     dispatch(filterSet(e.target.value.toLowerCase()));
   };
 
-  const deleteContact = id => {
-    dispatch(contactRemove({ id }));
-  };
+  const [removeContact, { isLoading: isUpdating }] = useRemoveContactMutation();
 
   return (
     <div
@@ -46,8 +46,11 @@ export const App = () => {
         <ContactForm />
         <h3>Contacts</h3>
         <Filter onChange={handleFilterChange} />
-        <ContactList contacts={filterContacts()} onDelete={deleteContact} />
+        {contacts?.length > 0 && (
+          <ContactList contacts={filterContacts()} onDelete={removeContact} />
+        )}
       </VertFlexSection>
+      {(isFetching || isUpdating) && <Loader />}
     </div>
   );
 };

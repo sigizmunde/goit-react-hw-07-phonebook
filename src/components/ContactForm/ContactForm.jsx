@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
-import { Form } from './ContactForm.styled';
+import React, { useEffect, useState } from 'react';
+import { Form, SubmitButton } from './ContactForm.styled';
 import { nanoid } from 'nanoid';
-import { useDispatch, useSelector } from 'react-redux';
-import { contactAdd, getContacts } from 'redux/contactsSlice';
+import { useGetContactsQuery, useAddContactMutation } from 'redux/contactsAPI';
 
 const ContactForm = () => {
-  const dispatch = useDispatch();
-
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+  const [nameList, setNameList] = useState('');
 
-  const nameList = useSelector(getContacts).map(item => item.name);
+  const { data: contacts, isFetching } = useGetContactsQuery();
+  const [addContact] = useAddContactMutation();
+
+  useEffect(() => {
+    setNameList(contacts ? contacts.map(item => item.name) : []);
+  }, [contacts]);
 
   const clearForm = () => {
     setName('');
@@ -37,7 +40,7 @@ const ContactForm = () => {
     ).length;
 
     if (successCondition) {
-      dispatch(contactAdd({ id: nanoid(), name, number }));
+      addContact({ id: nanoid(), name, phone: number });
       clearForm();
       // form clears only on success
     } else {
@@ -71,7 +74,9 @@ const ContactForm = () => {
           onChange={handleChange}
         />
       </label>
-      <button type="submit">Add contact</button>
+      <SubmitButton type="submit" disabled={isFetching}>
+        Add contact
+      </SubmitButton>
     </Form>
   );
 };
